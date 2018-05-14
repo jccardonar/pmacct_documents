@@ -5,8 +5,8 @@ Pmacct adapts different data sources to a single output model of flow data.  In 
 The output of pmacct corresponds to aggregated flow data. Data is aggregated in time and over flow attributes. Time aggregation is out of the scope of this document. Flow attribute aggregation reduce the number of output fields by aggregating the bytes/packets of the flows with the same characteristics. The aggregation fields that are used to define a flow can be configured with the "aggregate" keyword.
 
 The next are the particular fields that we aim to describe here:
-BGP fields: 'src_as', 'dst_as', 'peer_src_as' , 'peer_dst_as', peer_dst_ip
-NET fields: 'dst_net', 'src_mask', 'dst_mask', 'src_net',
+* BGP fields: 'src_as', 'dst_as', 'peer_src_as' , 'peer_dst_as', peer_dst_ip
+* NET fields: 'dst_net', 'src_mask', 'dst_mask', 'src_net',
 Most of these fields are self-descriptive. The only that requires further explanation is peer_dst_ip which is the BGP next-hop. The peer_dst_ip is valuable when one wants to find node-to-node, interface-to-interface, or peer-to-peer traffic matrices.
 
 # Sources of data
