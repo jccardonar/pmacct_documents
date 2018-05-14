@@ -16,11 +16,14 @@ The same procedure is performed for the src and dst ip.
 
 ## Netflow/IPFIX
 Nfacct supports Netflow version 5 and version 9. IPFIX behaves similarly to Netflow version 9.
+
 ### Netflow v5
 Netflow v5 does not carry BGP information. Pmacct offers the use_ip_next_hop keyword, which commands nfacctd to use the ip_next_hop as source for the peer_dst_ip field.
+
 ### Netflow v9/IPFIX
 Netflow v9 includes optional fields that contain the BGP data. Note that the information is optional, and even if device supports Netflow v9 it does not guarantee that it will populate these fields. 
 TBD: Write how each of the fields map to the different pmacct fields?
+
 ## Sflow
 TBD: Need to talk about nuances here.
 
@@ -47,13 +50,13 @@ Pmacct uses the src and dst nets from each of the  protocols to select the sourc
 Questions: Where is BMP here? Can the procedure differ from src and dst?
 
 # Network scenarios
-Let us discuss different network/monitoring scenarios base on the information of the previous sections:
+Let us discuss different network/monitoring scenarios base on the information of the previous sections.
 
 ## Multiple BGP paths received in the collector
-BMP and BGP using the ADD-PATH capability can announce all available paths for a specific prefix. However, the protocols still do not have the capability of signaling the paths installed in the FIB to forward packets. Even in the case in which a single path is used for forwarding, announcing multiple paths to pmacct will make the result ambigous. It is recommended to only announce single paths if relying on BGP to populate BGP fields.
+BMP and BGP, using the ADD-PATH capability, can announce multiple paths for a specific prefix. However, the protocols still do not have the capability of signaling the paths installed in the FIB. Even in the case in which a single path is used for forwarding, announcing multiple paths to pmacct will make the result ambigous. It is recommended to only announce single paths if relying on BGP to populate BGP fields.
 
 ## Prefix forwarded using multiple BGP paths
-In general, Networks with a heavy use of load balancing across BGP paths should rely on flow protocols populating BGP fields for correct accounting. BGP and BMP do not contain the mechanims to signal which BGP paths are used for forwarding. Even if future modifications of these protocols could signal the paths used for forwarding, allowing pmacct to add them all to the flow output, one would need to simulate the hashing algorithm of the router to infer the balancing.
+In general, Networks with a heavy use of load balancing across BGP paths should rely on flow protocols populating BGP fields for correct accounting. BGP and BMP do not contain the mechanims to signal which BGP paths are used for forwarding. Even if future modifications of these protocols could signal the paths used for forwarding, allowing pmacct to add them all to the flow output, one would need to simulate the hashing algorithm of the router to infer the balancing among the paths.
 
 ## Using RRs to obtain BGP data
 It is recommended to establish BGP sessions from every router exporting netflow. Some networks might want to reduce the number of BGP sessions by establishing them from their RR. To allow this, the bgp_agent_map could be used to link the edge routers to the RRs. This setup would work only if each edge router is mapped to a RR that would choose the same paths as the edge router.
