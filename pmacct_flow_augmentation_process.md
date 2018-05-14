@@ -16,7 +16,7 @@ The same procedure is performed for the src and dst ip.
 
 ## Netflow/IPFIX
 Nfacct supports Netflow version 5 and version 9. IPFIX behaves similarly to Netflow version 9.
-### Netflow v5
+### Netflow v5
 Netflow v5 does not carry BGP information. Pmacct offers the use_ip_next_hop keyword, which commands nfacctd to use the ip_next_hop as source for the peer_dst_ip field.
 ### Netflow v9/IPFIX
 Netflow v9 includes optional fields that contain the BGP data. Note that the information is optional, and even if device supports Netflow v9 it does not guarantee that it will populate these fields. 
@@ -24,7 +24,7 @@ TBD: Write how each of the fields map to the different pmacct fields?
 ## Sflow
 TBD: Need to talk about nuances here.
 
-## BGP
+## BGP
 Pmacct can use the BGP entries of a peer to find BGP information for a flow.
 The process to find the peer that matches a flow registry is:
 - If the flow source corresponds to a BGP peer (either BGP ID or interface), pmacct uses that peer's BGP table.
@@ -34,22 +34,22 @@ After Pmacct selects a BGP peer, it retrieves the paths for the flow by doing a 
 
 In cases in which multiple paths are available for the flow (for instance, when the BGP peer advertises multiple paths using the ADD-PATH capability), the result can be ambiguous. In this case, pmact TBD
 
-## BMP
+## BMP
 TBD
 
-## Files
+## Files
 TBD ??
 How is peer_dst_ip populated when a networks_file is done?
 
-## Longest
+## Longest
 Pmacct uses the src and dst nets from each of the  protocols to select the source of the data to populate the BGP and Net fields. If the prefix is equal, the preference becomes networks_file < sFlow/NetFlow < IGP <= BGP. Note that if some of the information from the source is empty, that will the value outputed by pmacct. 
 
 Questions: Where is BMP here? Can the procedure differ from src and dst?
 
-# Network scenarios
+# Network scenarios
 Let us discuss different network/monitoring scenarios base on the information of the previous sections:
 
-## Multiple BGP paths received in the collector
+## Multiple BGP paths received in the collector
 BMP and BGP using the ADD-PATH capability can announce all available paths for a specific prefix. However, the protocols still do not have the capability of signaling the paths installed in the FIB to forward packets. Even in the case in which a single path is used for forwarding, announcing multiple paths to pmacct will make the result ambigous. It is recommended to only announce single paths if relying on BGP to populate BGP fields.
 
 ## Prefix forwarded using multiple BGP paths
