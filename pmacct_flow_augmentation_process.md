@@ -8,6 +8,7 @@ The next are the particular fields that we aim to describe here:
 * BGP fields: 'src_as', 'dst_as', 'peer_src_as' , 'peer_dst_as', 'peer_dst_ip'
 * NET fields: 'dst_net', 'src_mask', 'dst_mask', 'src_net'
 * OTHER fields: 'peer_src_ip'
+
 Most of these fields are self-descriptive. The only two that requiresfurther explanation are peer_src_ip, which is the device exporting flows, and peer_dst_ip, which is the BGP next-hop. Both fields, especially when collecting flow in ingress direction so that peer_src_ip represents the entry point into the observed network, are valuable when one wants to find node-to-node, interface-to-interface, or peer-to-peer traffic matrices.
 
 # Sources of data
@@ -22,19 +23,18 @@ nfacctd supports Netflow version 5 and version 9. IPFIX behaves similarly to Net
 Netflow v5 does carry full NET information but only carries limited BGP information, src_as and dst_as. pmacct offers the use_ip_next_hop keyword, which commands nfacctd to use the ip_next_hop as source for the peer_dst_ip field. ip_next_hop represents the IP address configured on the far end of the output link of the exporting device and hence finds little use in producing traffic matrices.  
 
 ### Netflow v9/IPFIX
-Netflow v9 and IPFIX both carry full NET information and also include optional fields that contain the BGP data, including but not limited to BGP next-hop. Note that the information is optional and, even if device supports these protocols, it is not guaranteed that it will populate the NET and BGP fields.  
-TBD: Write how each of the fields map to the different pmacct fields?
+Netflow v9 and IPFIX both carry full NET information and also include optional fields that contain the BGP data, including but not limited to BGP next-hop. Note that the information is optional and, even if device supports these protocols, it is not guaranteed that it will populate the NET and BGP fields. "nfacctd -a" tells all supported fields and provides a description of each field. 
 
-## Sflow
-sFlow v5 is able to optionally carry NET and BGP information. Just like NetFlow v9/IPFIX, being a modular protocol, even if device supports this protocol, it is not guaranteed that it will populate the NET and BGP fields.
+### Sflow
+sFlow v5 is able to optionally carry NET and BGP information. Just like NetFlow v9/IPFIX, being a modular protocol, even if device supports this protocol, it is not guaranteed that it will populate the NET and BGP fields. "sfacctd -a" tells all supported fields and provides a description of each field.
 
 ## BGP
 pmacct can BGP peer with the same devices exporting flows and use their BGP RIBs to complement or augment flow data with BGP information.
 The process to find the BGP peer for a certain received flow is:
-- If the IP address of the flow exporter corresponds to an existing BGP peer (either BGP ID or interface), pmacct uses that peer BGP table.
+- If the IP address of the flow exporter corresponds to an existing BGP peer (either BGP ID or transport address), pmacct uses that peer BGP table.
 - Alternatively, the bgp_agent_map can be used to relate a flow source to a BGP peer.
 
-After pmacct selects a BGP peer, it retrieves the paths for the flow by doing a lookup of the flow dst ip. If a (single) path is found, it is used to populate the BGP and NET fields. In cases in which multiple paths are available for the flow (for instance, when the BGP peer advertises multiple paths to pmacct using the ADD-PATH capability), the result can be ambiguous. In this case, pmacct tries to match the flow to one of the available paths; if available, this is done by using the BGP next-hop field.
+After pmacct selects a BGP peer, it retrieves the paths for the flow by doing a lookup of the flow dst ip. If a (single) path is found, it is used to populate the BGP and NET fields. In cases in which multiple paths are available for the flow (for instance, when the BGP peer advertises multiple paths to pmacct using the ADD-PATH capability), the result can be ambiguous. In this case, pmacct tries to match the flow to one of the available paths; if available, this is done by using the BGP next-hop field. A lookup is performed also against the flow src ip, for example, to determine the source ASN of a flow.
 
 ## BMP
 pmacct can BMP peer with the same devices exporting flows or with a BMP route-server that collects and advertises (to pmacct) the BGP RIBs of the devices exporting flows. Brief digression being: in the former case the implementation of draft-ietf-grow-bmp-adj-loc-rib should be waited for as correlating flow data against BGP Adj-RIB-In information (that is, the BMP implementation according to rfc7854) could lead to inaccuracies; the latter case kind of solves this limitation that exists at time of this writing. Since BMP is a transport for the original BGP information (BMP provides also some statistics and extra visibility which is all out of the scope for this document), all that was said about BGP in the previous paragraph applies to BMP too. In other words, BGP information contained in BMP is used by pmacct to populate BGP RIBs for the BGP peers advertised in BMP.
