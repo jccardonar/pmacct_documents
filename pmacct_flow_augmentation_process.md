@@ -9,10 +9,10 @@ The next are the particular fields that we aim to describe here:
 * NET fields: 'dst_net', 'src_mask', 'dst_mask', 'src_net'
 * OTHER fields: 'peer_src_ip'
 
-Most of these fields are self-descriptive. The only two that requiresfurther explanation are peer_src_ip, which is the device exporting flows, and peer_dst_ip, which is the BGP next-hop. Both fields, especially when collecting flow in ingress direction so that peer_src_ip represents the entry point into the observed network, are valuable when one wants to find node-to-node, interface-to-interface, or peer-to-peer traffic matrices.
+Most of these fields are self-descriptive. The only two that require further explanation are peer_src_ip, which is the device exporting flows, and peer_dst_ip, which is the BGP next-hop. Both fields are valuable when one wants to find node-to-node, interface-to-interface, or peer-to-peer traffic matrices, especially when collecting flow in ingress direction. In this case, peer_src_ip represents the entry point into the observed network.
 
 # Sources of data
-The aforementioned BGP and NET fields can be populated using any of the flow protocols (netflow, ipfix, sflow), but they can also be populated using BGP, BMP, IGP, files, etc. The configuration parameters used to select the data to populate the fields is controlled using nfacctd_as and nfacctd_net (sfacctd_as and sfacctd_net.if using sflow). Next, we describe how the fields are extracted from each of these protocols. Although the application offers the flexibility to model different scenarios, it makes sense that the two configuration knobs are set aligned and and hence **we assume that they both are configured to the same value**.
+The aforementioned BGP and NET fields can be populated using any of the flow protocols (netflow, ipfix, sflow), but they can also be populated using BGP, BMP, IGP, files, etc. The configuration parameters used to select the data to populate the fields is controlled using nfacctd_as and nfacctd_net (sfacctd_as and sfacctd_net if using sflow). Next, we describe how the fields are extracted from each of these protocols. Although the application offers the flexibility to model different scenarios, it makes sense that the two configuration knobs are set aligned and hence **we assume that they both are configured to the same value**.
 
 The same lookup procedure is performed for the src and dst ip.
 
@@ -20,7 +20,7 @@ The same lookup procedure is performed for the src and dst ip.
 nfacctd supports Netflow version 5 and version 9. IPFIX behaves similarly to Netflow version 9.
 
 ### Netflow v5
-Netflow v5 does carry full NET information but only carries limited BGP information, src_as and dst_as. pmacct offers the use_ip_next_hop keyword, which commands nfacctd to use the ip_next_hop as source for the peer_dst_ip field. ip_next_hop represents the IP address configured on the far end of the output link of the exporting device and hence finds little use in producing traffic matrices.  
+Netflow v5 does carry full NET information but carries limited BGP information: only the src_as and dst_as. pmacct offers the use_ip_next_hop keyword, which commands nfacctd to use the ip_next_hop as source for the peer_dst_ip field. ip_next_hop represents the IP address configured on the far end of the output link of the exporting device and hence finds little use in producing traffic matrices.  
 
 ### Netflow v9/IPFIX
 Netflow v9 and IPFIX both carry full NET information and also include optional fields that contain the BGP data, including but not limited to BGP next-hop. Note that the information is optional and, even if device supports these protocols, it is not guaranteed that it will populate the NET and BGP fields. "nfacctd -a" tells all supported fields and provides a description of each field. 
@@ -49,7 +49,7 @@ pmacct uses the src and dst nets from each of the methods (that is, BGP, BMP, fi
 Let us discuss different network/monitoring scenarios base on the information of the previous sections.
 
 ## Multiple BGP paths received in the collector
-BMP and BGP, using the ADD-PATH capability, can announce multiple paths for a specific prefix. However, the protocols still do not have the capability of signaling the paths installed in the FIB. Even in the case in which a single path is used for forwarding, announcing multiple paths to pmacct can make the result ambiguous ((for example, in case the network runs BGP next-hop self). Unless ADD-PATH is enabled network-wide, it is recommended to only announce single paths if relying on BGP to populate BGP fields.
+BMP and BGP, using the ADD-PATH capability, can announce multiple paths for a specific prefix. However, the protocols still do not have the capability of signaling the paths installed in the FIB. Even in the case in which a single path is used for forwarding, announcing multiple paths to pmacct can make the result ambiguous (for example, in case the network runs BGP next-hop self). Unless ADD-PATH is enabled network-wide, it is recommended to only announce single paths if relying on BGP to populate BGP fields.
 
 ## Prefix forwarded using multiple BGP paths
 In general, Networks with a heavy use of load balancing across BGP paths should rely on flow protocols populating BGP fields for correct accounting. BGP and BMP do not contain the mechanims to signal which BGP paths are used for forwarding. Even if future modifications of these protocols could signal the paths used for forwarding, allowing pmacct to add them all to the flow output, one may still need to simulate the hashing algorithm of the router to infer the balancing among the paths (even if not running BGP next-hop self; for example, in corner cases where multiple statics, BGP multi-hop sessions, etc. are advertised for the same prefix in ADD-PATH by the same router).
